@@ -1,4 +1,4 @@
-@[toc]
+
 头文件：#include <pthread.h>
 在编译时注意加上-lpthread参数，以调用静态链接库。因为pthread并非Linux系统的默认库。
 ## 1.线程创建
@@ -52,7 +52,8 @@ int main(void){
 }
 
 ```
-**运行结果：**
+运行结果：
+
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20200312222203393.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0hMX0hMSEw=,size_16,color_FFFFFF,t_70)
 ## 2. 线程等待
 函数声明：
@@ -65,6 +66,8 @@ void pthread_join(pthread_t thread,void ** retval);
 -如果执行成功，将返回0，如果失败则返回一个错误码。
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20200312212100668.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0hMX0hMSEw=,size_16,color_FFFFFF,t_70)
+
+
 代码演示：
 
 ```cpp
