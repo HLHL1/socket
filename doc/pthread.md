@@ -1,6 +1,6 @@
 
 头文件：#include <pthread.h>
-在编译时注意加上-lpthread参数，以调用静态链接库。因为pthread并非Linux系统的默认库。
+在编译时注意加上-lpthread参数，以调用动态链接库。因为pthread并非Linux系统的默认库。
 ## 1.线程创建
 函数声明
 
