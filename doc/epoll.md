@@ -19,27 +19,27 @@ struct epoll_event {
 	epoll_data_t data;    / User data variable /
 };
 ```
->结构体==epoll_event== 被用于注册所感兴趣的事件和回传所发生待处理的事件。
+>结构体epoll_event 被用于注册所感兴趣的事件和回传所发生待处理的事件。
+>
 >events字段是表示感兴趣的事件和被触发的事件可能的取值为：
+>
 >-EPOLLIN ：表示对应的文件描述符可以读；
 -EPOLLOUT：表示对应的文件描述符可以写；
 -EPOLLPRI：表示对应的文件描述符有紧急的数据可读
 -EPOLLERR：表示对应的文件描述符发生错误；
 -EPOLLHUP：表示对应的文件描述符被挂断；
 -EPOLLET：表示对应的文件描述符设定为edge模式；
->==epoll_data== 联合体用来保存触发事件的某个文件描述符相关的数据。例如一个client连接到服务器，服务器通过调用accept函数可以得到于这个client对应的socket文件描述符，可以把这文件描述符赋给epoll_data的fd字段以便后面的读写操作在这个文件描述符上进行。
+>epoll_data 联合体用来保存触发事件的某个文件描述符相关的数据。例如一个client连接到服务器，服务器通过调用accept函数可以得到于这个client对应的socket文件描述符，可以把这文件描述符赋给epoll_data的fd字段以便后面的读写操作在这个文件描述符上进行。
 
-注意：
-epoll有两种模式,Edge Triggered(简称ET) 和 Level Triggered(简称LT)。在采用这两种模式时要注意的是,如果采用ET模式,那么仅当状态发生变化时才会通知,而采用LT模式类似于原来的select/poll操作,只要还有没有处理的事件就会一直通知.。
-ET（Edge Triggered）与LT（Level Triggered）的主要区别可以从下面的例子看出
-eg：
-1． 标示管道读者的文件句柄注册到epoll中；
-2． 管道写者向管道中写入2KB的数据；
-3． 调用epoll_wait可以获得管道读者为已就绪的文件句柄；
-4． 管道读者读取1KB的数据
-5． 一次epoll_wait调用完成
-如果是ET模式，管道中剩余的1KB被挂起，再次调用epoll_wait，得不到管道读者的文件句柄，除非有新的数据写入管道。如果是LT模式，只要管道中有数据可读，每次调用epoll_wait都会触发。
-另一点区别就是设为ET模式的文件句柄必须是非阻塞的。
+## epoll 的两种触发模式
+EPOLLLT：LT（水平触发）是默认的模式，只要这个文件描述符还有数据可读，每次 epoll_wait都会返回它的事件，提醒用户程序去操作。只要有数据都会触发，缓冲区剩余未读尽的数据会导致epoll_wait返回。
+EPOLLET：ET（边缘触发）是“高速模式”，在它检测到有 I/O 事件时，通过 epoll_wait 调用会得到有事件通知的文件描述符，对于每一个被通知的文件描述符，如可读，则必须将该文件描述符一直读到空，让 errno 返回 EAGAIN 为止，否则下次的 epoll_wait 不会返回余下的数据，会丢掉事件。如果ET模式不是非阻塞的，那这个一直读或一直写势必会在最后一次阻塞。只有数据到来才触发，不管缓存区中是否还有数据，缓冲区剩余未读尽的数据不会导致epoll_wait返回。
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200319222846183.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0hMX0hMSEw=,size_16,color_FFFFFF,t_70)
+
+epoll为什么要有EPOLLET触发模式？
+如果采用EPOLLLT模式的话，系统中一旦有大量你不需要读写的就绪文件描述符，它们每次调用epoll_wait都会返回，这样会大大降低处理程序检索自己关心的就绪文件描述符的效率.。而采用EPOLLET这种边缘触发模式的话，当被监控的文件描述符上有可读写事件发生时，epoll_wait()会通知处理程序去读写。如果这次没有把数据全部读写完(如读写缓冲区太小)，那么下次调用epoll_wait()时，它不会通知你，也就是它只会通知你一次，直到该文件描述符上出现第二次可读写事件才会通知你！！！这种模式比水平触发效率高，系统不会充斥大量你不关心的就绪文件描述符。
+
 # 函数
 ## 1.epoll_create()
 
@@ -79,4 +79,4 @@ int epoll_wait(int epfd,struct epoll_event   events,int maxevents,int timeout);
 返回值：返回发生事件数，-1有错误。
 
 
-后续还会继续添加epoll的深层原理~~
+epoll的深层原理参考：https://www.jianshu.com/p/e6b9481ca754
